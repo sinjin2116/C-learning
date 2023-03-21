@@ -1,0 +1,393 @@
+以下所有方括号表示可选输入
+----------------------------------------------------------------------------------------CREATE---------------------------------------------------------------------------------------------
+CREATE TABLE table_name(column_name type, column_name2 type, . . .)
+
+----------------------------------------------------------------------------------------INSERT--------------------------------------------------------------------------------------------
+INSERT INTO table_name (column1, column2, column3 . .) 
+	VALUES(value1, value2, value3 . .);
+
+----------------------------------------------------------------------------------------SELECT --------------------------------------------------------------------------------------------
+SELECT [DISTINCT] * | {column1, column2, column3 . .}
+	FROM table_name;
+DISRINCT 去掉重复数据
+* 查询所有列
+
+使用表达式对查询的列进行运算
+SELECT * | {column1 | expression, column2 | expression, . .}
+	FROM table_name;
+eg: SELECT `name`, (chinese+english+math) FROM student;
+
+SELECT column_name AS 别名 from  表明；
+eg: SELECT `name`, (chinese+english+math) AS total_score FROM student;
+
+---------------------------where 中的运算符------------------------
+BETWEEN ...AND... : 显示在某一区间的值 （注意是双闭区间）
+IN(set) : 显示在in列表中的值，例：in(100,200)
+LIKE  '张pattern' : 模糊查询 
+NOT LIKE '' : 模糊查询
+is NULL : 判断是否为空
+eg: SELECT * FROM studet WHERE (chinese+english+math)>200 AND 'math'<'chinese' AND `name` LIKE '韩%';
+eg: SELECT * FROM studet WHERE 'math' IN (89,90,91);
+
+---------------------------order by子句排序-----------------------
+SELECT column1, column2, column3 . . FROM table_name
+	ORDER BY column asc|desc, . . .;
+eg: SELECT 'name', (chinese+english+math) AS total_score FROM studet ORDER BY total_score DESC;
+eg: SELECT * FROM studet WHERE 'name' LIKE '李%' ORDER BY 'math';
+eg: SELECT * FROM emp ORDER BY deptno ASC, sal DESC; 先按照部门排序再按照工资排序
+----------------------------------------------------------统计函数----------------------------------------------------------------
+---------------------------------------count------------ --------------------
+----------------------返回行总数-----------------------
+SELECT COUNT(*) | COUNT(column_name) FROM table_name
+	[WHERE where_definition]
+注意：column选择时，系统会排除为NULL的计数
+
+---------------------------------------Sum---------------------------------
+---------------返回满足where条件的行的和-------------(一般使用在数值列)
+SELECT SUM(column_name [AS nick_name]), SUM(column_name) ... FROM tablename
+	[WHERE where_definition]
+
+---------------------------------------avg----------------------------------
+---------------返回满足where条件一列的平均值--------------
+SELECT AVG(column_name), AVG(column_name), ... FROM table_name
+	[WHERE where_definition]
+
+-----------------------------------Max/Min---------------------------------
+------------返回满足where条件一列的最大/最小值------------
+SELECT MAX(column_name) FROM table_name
+	[WHERE where_definition]
+
+-------------------------------------分组统计---------------------------------
+-------group by对查询的列进行分组【先创建测试表n个】----
+SELECT column1, column2, column3 . .FROM table_name GROUP BY column
+
+--------------------having限制分组显示结果------------------
+SELECT column1, column2, column3 . . FROM table_name GROUP BY column HAVING . . . 
+eg: SELECT AVG(sal), MAX(sal), deptno FROM emp GROUP BY depatno; (按照部门分组) 得出的结果为不同部门的人员总的平均工资和最高工资
+eg: SELECT AVG(sal), MAX(sal), deptno, job FROM emp GROUP BY depatno, job; (按照每个部门的岗位分组) 得出的结果为每个部门的岗位，人员总的平均工资和最高工资
+eg: SELECT AVG(sal) AS avg_sal,  deptno FROM emp GROUP BY depatno HAVING avg_sal<2000; (按照部门分组) 得出的结果为平均工资小于2000的部门号和平均工资(别名用作防止重复计算AVG)
+
+--------------------------------------------------------------字符串函数-------------------------------------------------------------
+CHARSET(str) : 返回字符串的表示规则，如utf-8
+CONCAT(string2, string3, . . .) : 连接字符串，将多个列拼接为一列
+eg: SELECT CONCAT(ename, 'job is', job) FROM emp; 把ename和job拼成一列
+INSTR(string, substring) : 返回substring在string中的位置，没有则返回0
+eg: SELECT INSTR('hanshunping', 'ping') FROM DUAL 返回值为8 （DUAL为亚元表，做测试表使用）
+UCASE(string2) : 转换成大写
+LCASE(string2) : 转换成小写
+LEFT|RIGHT(string2, length) : 从string2中的左边或者右边起取length个字符
+LENGTH(string) : string长度【按照字节】
+REPLACE(str, search_str, replace_str) : 在str中用replace_str代替search_str
+STRCMP(string1, string2) : 逐字符比较两个字符串的大小
+SUBSTRING(str, position [, length]) : 从str的position开始【从1开始计算】，取length个字符
+LTRIM(string2) | RTRIM(string2) | TRIM() : 去除前端空格或后端空格或把两端都去掉
+
+eg: 以首字母小写的方式显示所有员工emp表的姓名
+SELECT CONCAT(LCASE(SUBSTRING(ename,1,1)), SUBSTRING(ename,2)) FROM emp;
+
+--------------------------------------------------------------数学函数---------------------------------------------------------------
+ABS(num) : 绝对值
+BIN(decimal_number) : 十进制转二进制
+CEILING(num) : 向上取整
+CONV(num, from_base, to_base) : 进制转换
+FLOOR(num) : 向下取整
+FORMAT(num, decimal_places) : 保留小数位数
+HEX(decimal_number) : 转十六进制
+LEAST(num, num2, ... ) : 求最小值
+MOD(numberator, denominator) : 求余
+RAND([seed]) : RAND([seed])其范围为0<=v<=1.0 即返回一个随机浮点数v，范围在0-1之间，若已指定一个整数参数N，则它被用作种子值，用来产生重复序列
+eg: SELECT RAND() FROM DUAL;
+eg: SELECT RAND(3) FROM DUAL; 结果变成随机数不会再改变，即3被用作种子，重复取值。换种子还会变值并且固定
+
+---------------------------------------------------------------时间、日期函数----------------------------------------------------------
+CURRENT_DATE() : 当前日期
+CURRENT_TIME() : 当前时间
+CURRENT_TIMESTAMP() : 当前时间戳（包含年月日，时分秒）
+eg: INSERT INTO mes VALUES(1, '北京新闻', CURRENT_TIMESTAMP());
+DATE(datetime) : 返回datetime的日期部分
+eg: SELECT id, content, DATE(send_time) FROM mes; 结果是显示所有信息，但是只显示日期，去掉时分秒
+DATE_ADD|SUB(date2, INTERVEL d_value d_type) : 在date2中加上或者减去日期或者时间
+eg: SELECT * FROM mes WHERE DATE_ADD(send_time, INTERVAL 10 MINUTE) >= NOW();显示在10分钟内发布的新闻
+DATEDIFF(date1, date2) : 两个日期差（结果是天数）
+TIMEDIFF(date1, date2) : 两个时间差（时分秒）
+NOW() : 当前时间
+eg: INSERT INTO mes VALUES(1, '北京新闻', NOW());
+YEAR|MONTH|DATE(datetime) FROM_UNIXTIME : 年月日
+eg: SELECT YEAR(NOW()) FROM DUAL;只取年的部分
+UNIX_TIMESTAMP() : 返回1970-1-1到现在的秒数
+eg: SELECT UNIX_TIMESTAMP() FROM DUAL;
+FROM_UNIXTIME() : 把UNIX_TIMESTAMP秒数转成指定格式的日期
+eg: SELECT FROM_UNIXTIME(1618483438, '%Y-%m-%d %H:%i:%s') FROM DUAL;
+
+---------------------------------------------------------------加密函数和系统函数------------------------------------------------------
+USER() : 查询用户
+eg: SELECT USER() [FROM DUAL]; 查询当前用户@IP地址
+DATABASE() : 查询当前使用的数据库名称
+MD5(str) : 为字符串算出一个MD5 32的字符串，（用户密码）加密
+eg: INSERT INTO hsp_user VALUES(100, '余川', MD5('bFERPmDy2cc'))；对我的密码进行加密，不让别人看
+eg: 查询的时候 SELECT * FROM hsp_user WHERE `name` = '余川' AND pwd = MD5('bFERPmDy2cc')
+PASSWORD(str) : 为原文密码str 计算并返回密码字符串，通常用于对mysql数据库的用户密码加密，这是mysql默认的密码加密方法
+SELECT * FROM mysql.user : 查询 数据库.表 就不用手动切换数据库了
+
+---------------------------------------------------------------流程控制函数--------------------------------------------------------------
+CONTROL
+eg: 如果为空，则显示0.0，如果job是CLERK则显示为职员，如果是MANAGER则显示为经理
+IF(expr1, expr2, expr3) : 如果expr1为True，则返回expr2否则返回expr3
+eg: SELECT ename, IF(comn IS NULL, 0.0, comn) FROM emp;
+IFNULL(expr1, expr2) : 如果expr1不为空NULL，则返回expr1，否则返回expr2
+SELECT CASE WHEN exper1 THEN expr2 WHEN expr3 THEN expr4 ELSE expr5 END; [类似多重分支]，如果...那么...如果...那么...否则...
+eg: SELECT ename, (SELECT CASE WHEN job = 'CLERK' THEN '职员' WHEN job = 'MANAGER' THEN '经理' ELSE job END) FROM emp；
+
+--------------------------------------------------------------------查询增强--------------------------------------------------------------
+DESC emp ： 查询表的结构
+
+------------------------------分页查询----------------------------------
+SELECT . . . LIMIT START, ROWS 从start+1行开始取，取出rows行，start从零开始计算
+SELECT * FROM emp ORDER BY id LIMIT 0, 3
+
+----------------------------GROUP BY----------------------------------
+显示每种岗位的雇员总数和平均工资
+SELECT COUNT(*), AVG(sal), job FROM emp GROUP BY job;
+显示雇员总数，以及获得补助的员工数(奖金非空)
+SELECT COUNT(*), COUNT(comn) FROM emp
+统计没有获得奖金的雇员数
+SELECT COUNT(*), COUNT(IF(comn IS NULL, 1, NULL)) FROM emp
+显示管理者的总人数（去重）
+SELECT COUNT(DISTINCT mgr) FROM emp;
+显示雇员工资的最大差额
+SELECT MAX(sal)-MIN(sal) FROM emp;
+
+-------------------------------分组总结------------------------------------
+几个语法顺序：GROUP BY -> HAVING -> ORDER BY -> LIMIT
+统计各个部门的平均工资，并且是大于1000的，按照平均工资从高到低排序，取出前两行记录
+SELECT deptno AVG(sal) AS avg_sal FROM emp GROUP BY deptno HAVING avg_sal>1000 ORDER BY avg_sal DESC LIMIT 0, 2
+
+--------------------------------------------------------------------多表查询-------------------------------------------------------------
+eg: SELECT * FROM emp, dept WHERE emp.deptno = dept.deptno; 过滤笛卡尔集后返回需要的表,where就是过滤条件
+eg: SELECT ename, sal, dname, emp.deptno FROM emp, dept WHERE emp.deptno = dept.deptno; 
+eg: SELECT ename, sal, grade FROM emp, salgrade WHERE sal BETWEEN losal AND hisal;
+
+------------------------------------------自连接--------------------------------------------
+员工和上级是通过一个表的mgr关联，即mgr显示的是上级的员工编号，该上级也在这个表中，这里要显示员工和他的上级的名字，必须用自连接
+eg: SELECT worker.ename, boss.ename FROM emp worker , emp boss WHERE worker.mgr = boss.empno; 这里一定要把表名取别名
+
+------------------------------------------子查询（嵌套查询）---------------------------------------------
+单行子查询：显示与SMITH同一部门的所有员工
+eg: SELECT deptno FROM emp WHERE ename = 'SMITH';把这个语句当作一个子查询
+SELECT * FROM emp WHERE deptno = (SELECT deptno FROM emp WHERE ename = 'SMITH')
+多行子查询： 显示和10号部门岗位相同的雇员名字、岗位、工资、部门号，但不包含10号部门的雇员
+eg: SELECT DISTINCT job FROM emp WHERE deptno = 10;
+SELECT ename, job, sal, deptno FROM emp WHERE job IN(SELECT DISTINCT job FROM emp WHERE deptno = 10) AND deptno != 10;
+
+---------------------把子查询的结果当作一个表来使用-----------------------
+查询ecshop中各个类别价格最高的商品
+SELECT goods_id, cat_id, goods_name, MAX(shop_price) AS max_price FROM ecs_goods GROUP BY cat_id;
+SELECT cat_id, MAX(shop_price) AS max_price FROM ecs_goods GROUP BY cat_id; 把这个表当成临时表，和原来的表建立连接，显示正确的结果
+SELECT goods_id, ecs_goods.cat_id, goods_name, shop_price FROM(SELECT cat_id, MAX(shop_price)  AS max_price FROM ecs_goods GROUP BY cat_id) temp, ecs_goods WHERE temp.cat_id = ecs_good.cat_id AND temp.max_price = ecs_goods.shp_price
+
+-------------------------------ALL&ANY------------------------------------
+显示工资比30号部门所有员工高的员工姓名、工资和部门号
+SELECT ename, sal, depyno, FROM emp WHERE sal > ALL(SELECT sal FROM emp WHERE deptno = 30)
+ANY就是其中任意一个
+
+--------------------------------------------多列子查询----------------------------------------------------------
+(column1, column2, . . .) = (SELECT column1, column2, . . . FROM . . . )
+显示与SMITH部门和岗位完全相同的雇员且不含SMITH
+SELECT * FROM emp WHERE (deptno, job) = (SELECT deptno, job FROM emp WHERE ename = 'SMITH') AND ename != 'SMITH'
+表.* 表示将该表所有列都显示
+
+--------------------------------------------表复制和去重（蠕虫复制）----------------------------------------------
+INSERT INTO my_tab (id, `name`, sal, job, deptno) SELECT empno, ename, sal, job, deptno FROM emp;
+自我复制： INSERT INTO my_tab SELECT * FROM my_tab 常用来测试执行效率
+面试题：如何删除掉一张表的重复记录
+CEWATE TABLE my_temp LIKE emp;  把emp表结构复制
+INSERT INTO my_temp SELECT DISTINCT * FROM my_tab; 把数据复制
+其实这里直接把临时表改个名字然后把原表drop掉即可，但这里没有这样做
+DELETE FROM my_table; 把原表清掉，然后再复制过来，然后在drop掉临时表
+
+--------------------------------------------合并查询UNION&UNION ALL----------------------------------------
+合并多个SELECT语句的结果
+SELECT ename, sal, job FROM emp WHERE sal > 2500;
+SELECT ename, sal, job FROM emp WHERE job = 'MANAGER'
+UNION ALL 将两个查询结果合并，但不会去重 UNION会自动去重
+
+---------------------------------------------外连接-----------------------------------------------------------
+列出部门名称和部门员工名字和工作，同事要求显示没有员工的部门
+SELECT dname, ename, job FROM emp, dept WHERE emp.deptno = dept.deptno ORDER BY dname
+左外连接->左边的表完全显示
+SELECT `name`, stu.id, grade FROM stu, exam WHERE stu,id = exam.id;
+改成左外连接
+SELECT `name`, stu.id, grade FROM stu LEFT JOIN exam ON stu.id = exam.id;
+
+---------------------NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK约束-----------------------------
+确保数据库的数据满足特定的商业规则
+PRIMARY KEY（主键）：column type PRIMARY KEY : 一般每个表都有一个主键，定义后该列不能重复
+CREATE TABLE my_table  (id INT PRIMARY KEY, `name` VARCHAR(32), email VARCHAR(32));
+重要：1 主键不能重复且不能为空
+2 一张表最大只能有一个主键，但可以是复合主键 （CREATE TABLE my_table  (id INT, `name` VARCHAR(32), email VARCHAR(32)，PRIMARY KEY(id, `name`));(id和name要同时不相同，同时相同才违反约束)
+UNIQUE （唯一）：column type UNIQUE [NOT NULL]: 该列值不重复
+细节：1 如果没有指定NOT NULL 那么可以有多个NULL值
+2 一张表可以有多个UNIQUE
+FOREIGN KEY(外键) ：FOREIGN KEY (column) REFERENCES table_name (primaryKey_name||column) : 定义主表和从表关系。
+CREATE TABLE my_class (id INT PRIMARY KEY, `name` VARCHAR(32) NOT NULL DEFAULT ' '); 创建主表
+CREATE TABLE my_stu (id INT PRIMARY KEY, `name` VARCHAR(32) NOT NULL DEFAULT ' ', class_id INT, FOREIGN KEY (class_id) REFERENCES my_class(id)); 创建从表
+重点：1 外键定义在从表上，前提是主键必须定义有主键或者UNIQUE约束
+2 表的类型必须是innodb，才支持外键
+3 外键字段类型要和主键字段类型一样
+4 外键字段的值，必须在主键字段中出现过或者为NULL【前提是外键字段允许为NULL】
+5 如果主外键关系形成了，数据就不能随意删除了
+DELETE FROM my_class WHERE id = 100 (取决于有没有外键记录指向它)
+CHECK : column type CHECK (check_condition) : 强制行数据必须满足的条件
+CREATE TABLE my_table (id INT PRIMARY KEY, `name` VARCHAR(32), sex VARCHAR(6) CHECK (sex IN('man', 'woman')), sal DOUBLE CHECK (sal > 1000 AND sal < 2000));
+重点：如果不生效可以暂时用枚举：sex ENUM('男', '女') NOT NULL
+
+-------------------------------------------自增长----------------------------------------------------
+column type PRIMARY KEY AUTO_INCREMENT
+CREATE TABLE my_table (id INT PRIMARY KEY AUTO INCREMENT, email VARCHAR(32) NOT NULL DEFAULT ' ', `name` VARCHAR(32) NOT NULL DEFAULT ' ');
+1 INSERT INTO my_table VALUES (NULL, 'jack@qq.com', 'jack'); (这里id从1开始自增长)
+2 INSERT INTO my_table (email, `name`) VALUES ('jack@qq.com', 'jack'); (没有赋值，也会自动增长，从1开始)
+重点：1 一般来说自增长和主键配合使用
+2 自增长也可以单独使用，但需要配合UNIQUE
+3 自增长修饰的字段最好为整形
+4 自增长默认从1开始，但也可以改：ALTER table_name AUTO_INCREMENT = 新的开始值
+5 当添加数据时，给自增长字段指定值，则以指定的值为准
+
+-------------------------------------------索引-----------------------------------------------------
+CREATE INDEX emptno_index ON emp (empno); (emptno_index是索引名称，后面表示emp表的empno列上创建索引) 查询速度起飞
+重要：1 只对创建了索引的列有效
+2 主键就是一个索引
+3 UNIQUE索引
+4 普通索引INDEX（允许列重复）
+5 全文索引（FULLTEXT），适用于MyISAM->一个搜索引擎。 开发中考虑使用：全文搜索Solr和ElasticSearch(ES)
+-------------------------添加索引------------------------------
+CREATE [UNIQUE] INDEX index_name ON table_name (col_name [(length)] [ASC|DESC], . . . )
+eg: CREATE UNIQUE INDEX id_index ON my_table (id)
+ALTER TABLE table_name ADD INDEX [index_name] (index_col_name, ...)
+eg: ALTER TABLE my_table ADD INDEX id_name (id) 
+------------------------添加主键索引---------------------------
+ALTER TABLE table_name ADD PRIMARY KEY (col_name);
+一般在建表确定主键的时候就已经定义了主键所以，如果没有定义，那么就采取下面方法
+eg: ALTER TABLE my_table ADD PRIMARY KEY (id)
+------------------------删除索引-------------------------------
+DROP INDEX index_name ON table_name;
+ALTER  TABLE table_name DROP INDEX index_name;
+------------------------删除主键索引--------------------------
+ALTER TABLE table_name DROP PRIMARY KEY 
+------------------------查询索引------------------------------
+SHOW INDEX(ES) FROM table_name
+SHOW KEYS FROM table_name
+DESC table_name
+
+-------------------------------------------------------------------事务--------------------------------------------------------------------------
+事务：用于保证数据的一致性，它由一组相关的dml语句组成，该组的dml语句要么全部成功，要么全部失败。如转账
+事务和锁：当执行事务操作时（dml语句），mysql会在表上加锁，防止其他用户改表的数据，这对用户来讲是十分重要的
+事务的几个基本操作：
+1 start transaction -- 开启事务   ||     set autocommit = off
+2 savepoint -- 设置保存点
+eg: SAVEPOINT a 设置保存点a
+执行一系列操作后
+eg: SAVEPOINT b 设置保存点b
+又一系列操作
+3 rollback to -- 回退事务
+发现错误 ROLLBACK TO b
+又发现错误，继续回退 ROLLBACK TO a
+4 rollback -- 回退全部事务
+5 commit -- 提交事务，所有操作生效，不能回退 
+eg: UPDATE balance SET money = money - 100 WHERE id = 100;
+eg: UPDATE balance SET money = money +100 WHERE id = 200;
+重要：事务依然需要innodb存储引擎
+
+------------------------------------------------------------------事务的隔离级别-----------------------------------------------------------------
+1 多个连接开启各自事务操作数据库中数据时，数据库系统要负责隔离操作，以保证各个连接在获取数据时的准确性
+2 如果不考虑隔离性，可能会引发
+	1 脏读：你还没提交，我这边看到了（两个事务同时在进行）隔离级别为读未提交
+	2 不可重复读：你提交了，我还在事务中，我一查可以看到你做的修改和插入（造成了不可重复读和幻读）我的事务已经被你影响了！！！！！
+	3 幻读：同一查询在同一事务中多次进行，由于其他提交事务所做的插入操作，每次返回不同的结果集
+c1在操作，c2看到的是怎样的数据是由隔离级别控制的
+事务的隔离级别：定义事务与事务之间的隔离程度
+
+4种隔离级别    脏读	    不可重复读	幻读	加锁读
+读未提交       √	         √		√	不加锁	（READ UNCOMMITTED）
+读已提交	     X	         √		√	不加锁	(READ COMMITTED)
+可重复读       X	         X		X	不加锁	(REPEATABLE READ)
+可串行化       X	         X		X	加锁	(SERIALIZABLE)
+
+查看当前mysql的隔离级别
+SELECT @@tx_isolation;
+查看系统的隔离级别
+SELECT @@global.tx_isolation;
+设置隔离级别
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTTED
+设置系统的隔离级别
+SET GLOBAL TRANSACTION ISOLATION LEVEL READ UNCOMMITTTED
+选择某个数据库
+use database_name;
+
+----------------------------------------------------事务的四个特性----------------------------------------------
+1 原子性
+2 一致性
+3 隔离性
+4 持久性
+--------------------------------------------------mysql表类型和存储引擎-------------------------------------
+表的类型是由存储引擎决定的，主要包括NyISAM, innoDB, Memory等
+mysql主要支持六种类型：CSV Memory ARCHIVE MRG_MYISAM MYISAM InnoDB
+六种类型又分为两类 1 事务安全型（innoDB），2 非事务安全型（myisam memory）
+查看所有的存储引擎：
+SHOW ENGINES;
+创建表的时候定义存储引擎
+CREATE TABLE my_table (id INT, `name` VARCHAR(32)) ENGINE MYISAM
+修改存储引擎
+ALTER TABLE table_name ENGINE = 存储引擎
+
+-----------------------------------------------------视图-----------------------------------------------------
+把重要的column隐藏，用视图，然后授权给用户
+视图是一个虚拟表，内容由查询定义，数据来自基表
+视图的四条基本指令：
+1 CREATE VIEW 视图名 AS SELECT 语句
+CREATE VIEW emp_view AS SELECT empno, ename, job, deptno FROM emp;
+2 DESC emp_view 查看视图
+SELECT * FROM emp_view
+3 ALTER VIEW 视图名 AS SELECT 语句
+4 SHOW CREATE VIEW 视图名
+5 DROP VIEW 视图名1，视图名2
+
+---------------------------视图多表查询-----------------------------------
+CREATE VIEW my_emp AS
+	SELECT empno, ename, dname, grade FROM emp, dept, salgrade WHERE emp.deptno = dept.deptno AND (sal BETWEEN losal AND hisal);
+--------------------------------------------------------用户管理-------------------------------------------------
+创建用户：CREATE USER '用户名' @ '允许登录的位置' IDENTIFIED BY '密码'
+删除用户：DROP USER '用户名' @ '允许登录的位置'；
+原因：当做项目开发时，可以根据不同的开发人员，赋给相应的操作权限
+所以管理人员(root)，根据创建不同的用户，赋给相应的权限
+查询用户：SELECT * FROM mysql.user
+修改自己的密码：SET PASSWORD = PASSWORD('密码')
+修改他人的密码：SET PASSWORD FOR '用户名' @ '登录位置' = PASSWORD('密码')
+Mysql8.0语法：ALTER USER 'root' @ 'localhost' INENTIFIED BY '密码'
+
+-------------------------------授权----------------------------------
+GRAND 授权列表 ON 库.对象名 TO '用户名' @ '登录位置' [IDENTIFIED BY '密码']（用户存在就修改密码，不存在就创建用户）
+GRANT SELECT ON ......
+GRANT SELECT, DELETE, CREATE ON ......
+GRANT ALL [PRIVILEGES] ON ......
+拓展：
+1 *.*表示所有数据库的所有对象
+2 库.* 表示库里的所有对象
+回收用户权限：REVOKE 权限列别 ON 库.列表名 FROM '用户名' @ '登录位置'
+刷新指令让权限生效：FLUSH PRIVILEGES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

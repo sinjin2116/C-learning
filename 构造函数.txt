@@ -1,0 +1,9 @@
+1 构造一个链表
+struct Listnode{
+	int val;
+	Listnode * next;
+	Listnode(int x): val(x), next(NULL){}
+}
+如果自己不定义构造函数，系统调用默认构造，但是没有初始化，所以我们要自己初始化
+Listnode * head = new Listnode();  今天刚学，头节点指针指向new出来的一个实例化对象
+head->val = 5; 初始化，给里面的值赋值，next自动指向NULL
